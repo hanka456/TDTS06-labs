@@ -11,82 +11,111 @@ import java.util.regex.*;
 public class ServerThread extends Thread
 {
       private Socket browserSocket;
-      private String messageFromBrowser;
-      private String messageFromWeb;
       private BufferedReader inFromBrowser;
       private PrintWriter outToBrowser;
-      private Client client;
+
+      //private String messageFromBrowser;
+      //private String messageFromWeb;
+      //private Client client;
     
       public ServerThread(Socket socket) throws IOException
       {
 	    browserSocket = socket;
-	    inFromBrowser = 
+	    if (browserSocket.isConnected())
+	    {
+		  System.out.println("Opened a new connection to browser with browser adress " +
+				     browserSocket.getRemoteSocketAddress() +
+				     " and local adress " +
+				     browserSocket.getLocalSocketAddress());
+	    }
+	    
+	    browserSocket.setKeepAlive(true);
+	    inFromBrowser =
 		  new BufferedReader(
 			new InputStreamReader(browserSocket.getInputStream()));
 	    outToBrowser =
 		  new PrintWriter(browserSocket.getOutputStream(), true);
       }
     
-      private void readFromBrowser()
+      private String readFromBrowser()
       {
 	    String inLine;
-	    messageFromBrowser = "";
+	    String message = "";
+
+	    System.out.println("HEJ");
+	    
 	    try
 	    {
 		  while ((inLine = inFromBrowser.readLine()) != null)
-		  {
-			if (inLine.equals(""))
+		  {			      
+			System.out.println("foo");
+			if (inLine.isEmpty())
+			{
+			      System.out.println("Empty");
 			      break;
-			messageFromBrowser += (inLine + "\r\n");
+			}
+			message += (inLine + "\r\n");
 		  }
+		  System.out.println("bar");
+
+		  
 	    }
+	    	   
 	    catch (IOException e)
 	    {
 		  System.out.println("Exception caught when trying to read from BufferedReader inFromBrowser");
 		  System.out.println(e.getMessage());
 	    }
-		  
-      }
-    
-      private void printMessageFromBrowser()
-      {
-	    System.out.println("Recieved from browser: \n" + messageFromBrowser);
-      }
-	
-      private void checkHttpHeader()
-      {
+	    
+	    System.out.println("Read from browser:\n" + message);
+	    return message;
+	    
       }
 	
       private void writeToBrowser(String message)
       {
 	    outToBrowser.println(message);
+	    System.out.println("Wrote to browser:\n" + message);
       }
 
-      private void printMessageToBrowser(String message)
+      private String getHeaderField(String message, String header)
       {
-	    System.out.println("Wrote to browser: \n" + message);
-      }
-	
-      private String getAdress()
-      {
-	    Pattern pattern = Pattern.compile("Host: (.*?)\r\n");
-	    Matcher matcher = pattern.matcher(messageFromBrowser);
+	    Pattern pattern = Pattern.compile(header + ": (.*?)\r\n");
+	    Matcher matcher = pattern.matcher(message);
 	    if (matcher.find())
 	    {
 		  return matcher.group(1);
 	    }
 	    else return null;
       }
+      
+      private String setConnectionClose(String message)
+      {
+	    return message.replaceFirst("Connection: keep-alive", "Connection: close");
+      }
+
+      private String setConnectionKeepAlive(String message)
+      {
+	    return message.replaceFirst("Connection: close", "Connection: keep-alive");
+      }
 	
       public void run()
       {
-	    readFromBrowser();
-	    printMessageFromBrowser();
-	    checkHttpHeader();
-	    client = new Client(getAdress());
-	    messageFromWeb = client.bounce(messageFromBrowser);
-	    writeToBrowser(messageFromWeb);
-	    printMessageToBrowser(messageFromWeb);
-	    // browserSocket.close();	
+	    String messageFromBrowser, messageToBrowser,
+		  adress, messageToWeb, messageFromWeb;
+
+	    while(true)
+	    {
+		  System.out.println("TJA");
+		  messageFromBrowser = readFromBrowser();
+		  adress = getHeaderField(messageFromBrowser, "Host");
+		  System.out.println(adress);
+		  messageToWeb = setConnectionClose(messageFromBrowser);
+		  
+		  messageFromWeb = new Client(adress).bounce(messageToWeb);
+
+		  messageToBrowser = setConnectionKeepAlive(messageFromWeb);
+		  writeToBrowser(messageToBrowser);
+	    }
       }
 }

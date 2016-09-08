@@ -11,7 +11,6 @@ import java.util.regex.*;
 public class Client
 {
       private Socket webSocket;
-      private String messageFromWeb;
       private BufferedReader inFromWeb;
       private PrintWriter outToWeb;
 	
@@ -20,6 +19,7 @@ public class Client
 	    try
 	    {
 		  webSocket = new Socket(adress, 80);
+		  webSocket.setKeepAlive(true);
 		  //System.out.println("created new websocket");
 		  inFromWeb = 
 			new BufferedReader(
@@ -41,18 +41,14 @@ public class Client
 
       private void writeToWeb(String message)
       {
+
 	    outToWeb.println(message);  
       }
-
-      private void printMessageToWeb(String message)
-      {
-	    System.out.println("Wrote to web: \n" + message);
-      }
 	
-      private void readFromWeb()
+      private String readFromWeb()
       {
 	    String inLine;
-	    messageFromWeb = "";
+	    String message = "";
 
 	    try
 	    {
@@ -60,32 +56,25 @@ public class Client
 		  {
 			if (inLine.equals(null))
 			      break;
-			messageFromWeb += (inLine + "\r\n");
+			message += (inLine + "\r\n");
 		  }
 	    }
 	    catch(IOException e)
 	    {
 		  System.out.println("Exception caught when trying to read from BufferedReader inFromWeb");
 		  System.out.println(e.getMessage());
-	    }	    
-      }
+	    }
 
-      private void printMessageFromWeb()
-      {
-	    System.out.println("Recieved from web: \n" + messageFromWeb);
-      }
-	
-      private void checkHttpContent()
-      {
+	    return message;
       }
 	
       String bounce(String message)
       {
 	    writeToWeb(message);
-	    printMessageToWeb(message);
-	    readFromWeb();
-	    printMessageFromWeb();
-	    checkHttpContent();
+	    System.out.println("Wrote to web: \n" + message);
+	    String messageFromWeb = readFromWeb();
+	    System.out.println("Read from web: " + messageFromWeb);
+	    //checkHttpContent();
 	    //webSocket.close();
 	    return messageFromWeb;
       }
