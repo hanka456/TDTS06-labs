@@ -27,10 +27,10 @@ public class NetNinny
 		  )
 	    {
 		  //while(true)
-		  // {
-		  System.out.println("Creating new ServerThread");
-		  new ServerThread(serverSocket.accept()).start();
-		  //}
+		  //{
+			System.out.println("Creating new ServerThread");
+			new ServerThread(serverSocket.accept()).start();
+			//}
 	    }
 
 	    catch (IOException e)
@@ -40,4 +40,4 @@ public class NetNinny
 		  System.out.println(e.getMessage());
 	    }
       }
-}
+} 

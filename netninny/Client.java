@@ -11,8 +11,8 @@ import java.util.regex.*;
 public class Client
 {
       private Socket webSocket;
-      private BufferedReader inFromWeb;
-      private PrintWriter outToWeb;
+      private HttpMessageWriter outToWeb;
+      private HttpMessageReader inFromWeb;
 	
       public Client(String adress)
       {
@@ -20,12 +20,15 @@ public class Client
 	    {
 		  webSocket = new Socket(adress, 80);
 		  webSocket.setKeepAlive(true);
-		  //System.out.println("created new websocket");
-		  inFromWeb = 
-			new BufferedReader(
-			      new InputStreamReader(webSocket.getInputStream()));
-		  outToWeb =
-			new PrintWriter(webSocket.getOutputStream(), true);
+
+		  outToWeb = new HttpMessageWriter(webSocket.getOutputStream());
+		  inFromWeb = new HttpMessageReader(webSocket.getInputStream());
+
+		  System.out.println("Started new Client");
+		  System.out.println("Opened a new connection to web with web adress " +
+				     webSocket.getRemoteSocketAddress() +
+				     " and local adress " +
+				     webSocket.getLocalSocketAddress());
 	    }
 	    catch(UnknownHostException e)
 	    {
@@ -38,44 +41,11 @@ public class Client
 		  System.out.println(e.getMessage());
 	    }	    
       }
-
-      private void writeToWeb(String message)
-      {
-
-	    outToWeb.println(message);  
-      }
 	
-      private String readFromWeb()
+      HttpMessage bounce(HttpMessage message)
       {
-	    String inLine;
-	    String message = "";
-
-	    try
-	    {
-		  while ((inLine = inFromWeb.readLine()) != null)
-		  {
-			if (inLine.equals(null))
-			      break;
-			message += (inLine + "\r\n");
-		  }
-	    }
-	    catch(IOException e)
-	    {
-		  System.out.println("Exception caught when trying to read from BufferedReader inFromWeb");
-		  System.out.println(e.getMessage());
-	    }
-
-	    return message;
-      }
-	
-      String bounce(String message)
-      {
-	    writeToWeb(message);
-	    System.out.println("Wrote to web: \n" + message);
-	    String messageFromWeb = readFromWeb();
-	    System.out.println("Read from web: " + messageFromWeb);
-	    //checkHttpContent();
-	    //webSocket.close();
+	    outToWeb.write(message);
+	    HttpMessage messageFromWeb = inFromWeb.read();
 	    return messageFromWeb;
       }
 }
