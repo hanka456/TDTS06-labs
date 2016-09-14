@@ -44,8 +44,44 @@ public class Client
 	
       HttpMessage bounce(HttpMessage message)
       {
-	    outToWeb.write(message);
-	    HttpMessage messageFromWeb = inFromWeb.read();
+	    HttpMessage messageFromWeb = null;
+	    
+	    try
+	    {
+		  outToWeb.write(message);
+		  messageFromWeb = inFromWeb.read();
+	    }
+	    
+	    catch(IOException e)
+	    {
+		  System.out.println("Exception cought when trying to read or write from webSocket");
+		  System.out.println(e.getMessage());
+	    }
+
+	    finally
+	    {
+		  close();
+	    }
+
 	    return messageFromWeb;
       }
+
+      private void close()
+      {
+	    try
+	    {
+		  inFromWeb.close();
+		  outToWeb.close();
+		  webSocket.close();
+
+		  System.out.println("Streams and socket closed in Client");
+	    }
+
+	    catch(IOException e)
+	    {
+		  System.out.println("Exception caught");
+		  System.out.println(e.getMessage());
+	    }
+      }
 }
+

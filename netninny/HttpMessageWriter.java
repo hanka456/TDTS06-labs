@@ -34,4 +34,9 @@ public class HttpMessageWriter
 		  System.out.println(e.getStackTrace());
 	    }
       }
+
+      public void close() throws IOException
+      {
+	    dataOut.close();
+      }
 }

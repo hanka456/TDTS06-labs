@@ -45,7 +45,7 @@ public class HttpMessage
       public void setField(String field, String newValue)
       {
 	    this.header =
-		  this.header.replaceFirst(field + ": (.*?)\r\n", field + ": " + newValue + "\r\n");
+		  this.header.replaceFirst(field + ": (.*?)\r\n", field + ": " + newValue);
       }
 
       public String getAdress()
@@ -64,11 +64,11 @@ public class HttpMessage
 
       public void setConnectionClose()
       {
-	    this.setField("Connection", "Close");
+	    this.setField("Connection", "Close\r\n");
       }
 
-      public void setConnectionKeepAlive()
+      public void setConnectionKeepAlive(int param)
       {
-	    this.setField("Connection", "Keep-Alive");
+	    this.setField("Connection", "Keep-Alive\r\nKeep-Alive: timeout=" + Integer.toString(param) + "\r\n");
       }
 }

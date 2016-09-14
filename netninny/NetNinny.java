@@ -26,11 +26,10 @@ public class NetNinny
 		  new ServerSocket(portNumber);
 		  )
 	    {
-		  //while(true)
-		  //{
-			System.out.println("Creating new ServerThread");
+		  while(true)
+		  {
 			new ServerThread(serverSocket.accept()).start();
-			//}
+		  }
 	    }
 
 	    catch (IOException e)
