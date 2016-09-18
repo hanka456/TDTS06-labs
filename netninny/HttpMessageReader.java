@@ -4,21 +4,25 @@
 
 package netninny;
 
-import java.net.*;
 import java.io.*;
-import java.util.regex.*;
 import java.util.Arrays;
+
+/* Used as a interface to read HttpMessage-objects
+   from input-stream. */
 
 public class HttpMessageReader
 {
       private BufferedInputStream dataIn;
 
+      /* Constructor */
       HttpMessageReader(InputStream in)
       {
 	    this.dataIn =
 		  new BufferedInputStream(in);
       }
 
+      /* Reads a byte. Throws a IOException if end of stream
+       is reached, which is the same as if socket has been closed */
       private byte readByte() throws IOException
       {
 	    int tmp = this.dataIn.read();
@@ -31,6 +35,7 @@ public class HttpMessageReader
 	    return (byte)tmp;
       }
 
+      /* Read a HttpMessage from stream */
       public HttpMessage read() throws IOException
       {
 	    HttpMessage message = null;
@@ -46,7 +51,7 @@ public class HttpMessageReader
 	    
 	    for(int i = 3; true; i++)
 	    {
-		  //Increase size of array if needed
+		  /* Increase size of array if needed */
 		  if(i == arrayLength)
 		  {
 			arrayLength = 2*arrayLength;
@@ -56,32 +61,32 @@ public class HttpMessageReader
 		  //Read one byte
 		  headerArray[i] = readByte();
 		  
-		  //Check if end of header has been reached
-		  //End of header is \r\n\r\n
+		  /*Check if end of header has been reached
+		    End of header is \r\n\r\n */
 		  if((headerArray[i-3] == (byte)13) &&
 		     (headerArray[i-2] == (byte)10) &&
 		     (headerArray[i-1] == (byte)13) &&
 		     (headerArray[i] == (byte)10))
 		  {
-			//Trim of unused space in array and exit loop
+			/* Trim of unused space in array and exit loop */
 			headerArray = Arrays.copyOf(headerArray, i+1);
 			break;
 		  }
 	    }
 	    
-	    //Make new HttpMessage with header and new byte array
-	    //with size read from Content-Length in header
+	    /* Make new HttpMessage with header and new byte array
+	       with size read from Content-Length in header */
 	    message = new HttpMessage(new String(headerArray));
 	    contentLength = message.getContentLength();
 	    byte[] bodyArray = new byte[contentLength];
 	    
-	    //Read body
+	    /* Read body */
 	    for(int i = 0; i < contentLength; i++)
 	    {
 		  bodyArray[i] = readByte();
 	    }
 	    
-	    //Set message to use the new body
+	    /* Set message to use the new body */
 	    message.body = bodyArray;
 	    
 	    System.out.println("Read:\n" + message.header);		  
@@ -89,6 +94,7 @@ public class HttpMessageReader
 	    return message;		  
       }
 
+      /* Closes stream */
       public void close() throws IOException
       {
 	    dataIn.close();
