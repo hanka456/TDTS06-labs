@@ -35,6 +35,7 @@ public class HttpMessageWriter
 	    //Any problems writing to the OutputStream are handled here
 	    catch(IOException e)
 	    {
+		  System.out.println("Could not write HttpMessage");
 		  System.out.println(e.getStackTrace());
 	    }
       }

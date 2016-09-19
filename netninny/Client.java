@@ -154,7 +154,7 @@ public class Client
 
 	    catch(IOException e)
 	    {
-		  System.out.println("Exception caught");
+		  System.out.println("Exception caught when trying to close streams or socket");
 		  System.out.println(e.getMessage());
 	    }
       }
